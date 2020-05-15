@@ -5,7 +5,7 @@ from random import *
 import ele
 
 # 设置窗口打开位置
-os.environ['SDL_VIDEO_WINDOW_POS'] = "400, 100"
+os.environ['SDL_VIDEO_WINDOW_POS'] = "300, 100"
 
 # 初始化
 pygame.init()
@@ -13,15 +13,21 @@ pygame.mixer.init()
 size = w, h = 800, 600
 screen = pygame.display.set_mode(size, 0, 32)
 pygame.display.set_caption("连连看")
-font = pygame.font.SysFont("impact", 24)
+font = pygame.font.SysFont("impact", 32)
 FPS = 30
 running = False
+clicked = None
+score = 0
+time = 60000
 
 # 定义颜色
 WHITE1 = (255, 255, 255)
 WHITE2 = (75, 75, 75)
 BLACK = (0, 0, 0)
 BULE = (0, 0, 50)
+
+link_sound = pygame.mixer.Sound('sound/link.WAV')
+link_sound.set_volume(1)
 
 # 初始化元素
 # 图片大小需要改变
@@ -52,7 +58,18 @@ def draw_map(map_list):
 		for e in l:
 			e.draw()
 
+def print_text(font, x, y, text, color = WHITE1):
+	ti = font.render(text, True, color)
+	screen.blit(ti, (x, y))
+
+# 检查两个是否匹配
+def can_clear(e1, e2):
+	if e1.img_index != e2.img_index:
+		return False
+	return True
+
 def check(map_list):
+	global clicked, score, time
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			pygame.quit()
@@ -63,20 +80,62 @@ def check(map_list):
 				for e in l:
 					geo = e.geo()
 					if geo[0] < pos[0] < geo[1] and geo[2] < pos[1] < geo[3]:
-						e.check = not e.check
+						if not e.hide:
+							if e.check:
+								e.check = False
+								clicked = None
+								break
+							else:
+								if clicked:
+									if can_clear(clicked, e):
+										link_sound.play()
+										clicked.hide = True
+										e.hide = True
+										clicked = None
+										score += 100
+										time += 2000
+									else:
+										clicked.check = False
+										clicked = None
+								else:
+									e.check = True
+									clicked = e
+								break
 
+# 初始化数据
+def init():
+	global clicked, score, time
+	clicked = None
+	score = 0
+	time = 600000
 
 def main():
+	global time
 	clock = pygame.time.Clock()
-
 	map_list = init_map()
+	gameover = False
 
 	while True:
-		
-		check(map_list)
-		screen.fill(BULE)
-		# 绘所有图
-		draw_map(map_list)		
+		screen.fill(BLACK)
+		if not gameover:
+			check(map_list)
+			print_text(font, 50, 0, "Score: " + str(score))
+			print_text(font, 600, 0, "Time: " + str(time // 1000))
+			# 绘所有图
+			draw_map(map_list)
+			if score == 7000:
+				gameover = True
+			time -= 30
+			if not time:
+				gameover = True
+		else:
+			for event in pygame.event.get():
+				if event.type == QUIT:
+					pygame.quit()
+					sys.exit()
+			print_text(font, 350, 250, "Game Over !")
+			print_text(font, 350, 300, "Your Score: " + str(score))		
+	
 		pygame.display.update()
 		clock.tick(FPS)
 
