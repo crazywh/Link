@@ -15,16 +15,13 @@ screen = pygame.display.set_mode(size, 0, 32)
 pygame.display.set_caption("连连看")
 font = pygame.font.SysFont("impact", 32)
 FPS = 30
-running = False
 clicked = None
 score = 0
 time = 60000
 
 # 定义颜色
-WHITE1 = (255, 255, 255)
-WHITE2 = (75, 75, 75)
+WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-BULE = (0, 0, 50)
 
 link_sound = pygame.mixer.Sound('sound/link.WAV')
 link_sound.set_volume(1)
@@ -58,15 +55,33 @@ def draw_map(map_list):
 		for e in l:
 			e.draw()
 
-def print_text(font, x, y, text, color = WHITE1):
+def print_text(font, x, y, text, color = WHITE):
 	ti = font.render(text, True, color)
 	screen.blit(ti, (x, y))
 
+def v_scan(e1, e2):
+	if e1.x == e2.x:
+		return True
+
+	return False
+
+def h_scan(e1, e2):
+	if e1.y == e2.y:
+		return True
+
+	return False
+
 # 检查两个是否匹配
 def can_clear(e1, e2):
+	# 图片不一致不会消除
 	if e1.img_index != e2.img_index:
 		return False
-	return True
+	else:
+		# 垂直扫描和水平扫描，一个成功即可
+		if v_scan(e1, e2) or h_scan(e1, e2):
+			return True
+		else:
+			return False
 
 def check(map_list):
 	global clicked, score, time
@@ -107,7 +122,7 @@ def init():
 	global clicked, score, time
 	clicked = None
 	score = 0
-	time = 600000
+	time = 60000
 
 def main():
 	global time
@@ -126,15 +141,20 @@ def main():
 			if score == 7000:
 				gameover = True
 			time -= 30
-			if not time:
+			if time <= 0:
 				gameover = True
 		else:
 			for event in pygame.event.get():
 				if event.type == QUIT:
 					pygame.quit()
 					sys.exit()
-			print_text(font, 350, 250, "Game Over !")
-			print_text(font, 350, 300, "Your Score: " + str(score))		
+				elif event.type == KEYDOWN:
+					if event.key == K_r:
+						init()
+						main()
+			print_text(font, 300, 200, "Game Over !")
+			print_text(font, 300, 250, "Your Score: " + str(score))
+			print_text(font, 280, 300, "Press R To Restart")	
 	
 		pygame.display.update()
 		clock.tick(FPS)
