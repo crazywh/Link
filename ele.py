@@ -14,7 +14,7 @@ class ImageEle():
 		self.rect = self.image.get_rect()
 		self.x = x
 		self.y = y
-		self.rect.left = x * self.__image_size + 50 
+		self.rect.left = x * self.__image_size
 		self.rect.top = y * self.__image_size + 50 
 		self.check = False
 		self.hide = False

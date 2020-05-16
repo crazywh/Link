@@ -29,7 +29,7 @@ link_sound.set_volume(1)
 # 初始化元素
 # 图片大小需要改变
 image_size = 50
-image_number = 14 * 10
+image_number = 16 * 11
 def init_map():
 	l_list = []
 	map_list = []
@@ -42,10 +42,10 @@ def init_map():
 	# 打乱顺序
 	shuffle(l_list)
 	# 构建完整图
-	for i in range(10):
+	for i in range(11):
 		temp1 = []
 		temp2 = []
-		for j in range(14):
+		for j in range(16):
 			# temp.append(l_list.pop())
 			temp1.append(ele.ImageEle(screen, l_list.pop(), j, i))
 			temp2.append(True)
@@ -66,32 +66,73 @@ def print_text(font, x, y, text, color = WHITE):
 def scan(e1, e2, map_index):
 	goal = []
 	# 向右探索
-	for i in range(e2.x + 1, 14):
+	for i in range(e2.x + 1, 16):
 		if map_index[e2.y][i] == True:
 			break
 		else:
 			goal.append((i, e2.y))
+			for j in range(e2.y, 11):
+				if map_index[j][i] == True:
+					break
+				else:
+					goal.append((i, j)) 
+			for j in range(e2.y - 1, -1, -1):
+				if map_index[j][i] == True:
+					break
+				else:
+					goal.append((i, j))		
 	# 向左
 	for i in range(e2.x - 1, -1, -1):
 		if map_index[e2.y][i] == True:
 			break
 		else:
 			goal.append((i, e2.y))
+			for j in range(e2.y, 11):
+				if map_index[j][i] == True:
+					break
+				else:
+					goal.append((i, j)) 
+			for j in range(e2.y - 1, -1, -1):
+				if map_index[j][i] == True:
+					break
+				else:
+					goal.append((i, j))				
 	# 向上
 	for i in range(e2.y - 1, -1, - 1):
 		if map_index[i][e2.x] == True:
 			break
 		else:
 			goal.append((e2.x, i))
+			for j in range(e2.x, 16):
+				if map_index[i][j] == True:
+					break
+				else:
+					goal.append((j, i)) 
+			for j in range(e2.x - 1, -1, -1):
+				if map_index[i][j] == True:
+					break
+				else:
+					goal.append((j, i))	
 	# 向下
-	for i in range(e2.y + 1, 10):
+	for i in range(e2.y + 1, 11):
 		if map_index[i][e2.x] == True:
 			break
 		else:
 			goal.append((e2.x, i))
+			for j in range(e2.x, 16):
+				if map_index[i][j] == True:
+					break
+				else:
+					goal.append((j, i)) 
+			for j in range(e2.x - 1, -1, -1):
+				if map_index[i][j] == True:
+					break
+				else:
+					goal.append((j, i))	
+
 	# 扫描原点
 	# 向右探索
-	for i in range(e1.x + 1, 14):
+	for i in range(e1.x + 1, 16):
 		if map_index[e1.y][i] == True:
 			break
 		elif (i, e1.y) in goal:
@@ -115,22 +156,22 @@ def scan(e1, e2, map_index):
 		else:
 			continue
 	# 向下
-	for i in range(e1.y + 1, 10):
+	for i in range(e1.y + 1, 11):
 		if map_index[i][e1.x] == True:
 			break
 		elif (e1.x, i) in goal:
 			return True
 		else:
 			continue
-
+	# 相邻则可以消除
 	if e1.x == e2.x and abs(e1.y - e2.y) == 1:
 		return True
 	elif e1.y == e2.y and abs(e1.x - e2.x) == 1:
 		return True
+
 	return False
 
 # 检查两个是否匹配
-
 def can_clear(e1, e2, map_index):
 	# 图片不一致不会消除
 	if e1.img_index != e2.img_index:
@@ -203,7 +244,7 @@ def main():
 			print_text(font, 600, 0, "Time: " + str(time // 1000))
 			# 绘所有图
 			draw_map(map_list)
-			if score == 7000:
+			if score == 8800:
 				gameover = True
 			time -= 30
 			if time <= 0:
