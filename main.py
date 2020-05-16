@@ -33,6 +33,7 @@ image_number = 14 * 10
 def init_map():
 	l_list = []
 	map_list = []
+	map_index = []
 	for i in range(0, image_number, 2):
 		e = randint(1, 12)
 		# 每次添加一对儿
@@ -42,13 +43,16 @@ def init_map():
 	shuffle(l_list)
 	# 构建完整图
 	for i in range(10):
-		temp = []
+		temp1 = []
+		temp2 = []
 		for j in range(14):
 			# temp.append(l_list.pop())
-			temp.append(ele.ImageEle(screen, l_list.pop(), j, i))
-		map_list.append(temp)
+			temp1.append(ele.ImageEle(screen, l_list.pop(), j, i))
+			temp2.append(True)
+		map_list.append(temp1)
+		map_index.append(temp2)
 
-	return map_list
+	return map_list, map_index
 
 def draw_map(map_list):
 	for l in map_list:
@@ -59,36 +63,94 @@ def print_text(font, x, y, text, color = WHITE):
 	ti = font.render(text, True, color)
 	screen.blit(ti, (x, y))
 
-def v_scan(e1, e2):
-	if e1.x == e2.x:
+def scan(e1, e2, map_index):
+	goal = []
+	# 向右探索
+	for i in range(e2.x + 1, 14):
+		if map_index[e2.y][i] == True:
+			break
+		else:
+			goal.append((i, e2.y))
+	# 向左
+	for i in range(e2.x - 1, -1, -1):
+		if map_index[e2.y][i] == True:
+			break
+		else:
+			goal.append((i, e2.y))
+	# 向上
+	for i in range(e2.y - 1, -1, - 1):
+		if map_index[i][e2.x] == True:
+			break
+		else:
+			goal.append((e2.x, i))
+	# 向下
+	for i in range(e2.y + 1, 10):
+		if map_index[i][e2.x] == True:
+			break
+		else:
+			goal.append((e2.x, i))
+	# 扫描原点
+	# 向右探索
+	for i in range(e1.x + 1, 14):
+		if map_index[e1.y][i] == True:
+			break
+		elif (i, e1.y) in goal:
+			return True
+		else:
+			continue
+	# 向左
+	for i in range(e1.x - 1, -1, -1):
+		if map_index[e1.y][i] == True:
+			break
+		elif (i, e1.y) in goal:
+			return True
+		else:
+			continue
+	# 向上
+	for i in range(e1.y - 1, -1, -1):
+		if map_index[i][e1.x] == True:
+			break
+		elif (e1.x, i) in goal:
+			return True
+		else:
+			continue
+	# 向下
+	for i in range(e1.y + 1, 10):
+		if map_index[i][e1.x] == True:
+			break
+		elif (e1.x, i) in goal:
+			return True
+		else:
+			continue
+
+	if e1.x == e2.x and abs(e1.y - e2.y) == 1:
 		return True
-
-	return False
-
-def h_scan(e1, e2):
-	if e1.y == e2.y:
+	elif e1.y == e2.y and abs(e1.x - e2.x) == 1:
 		return True
 
 	return False
 
 # 检查两个是否匹配
-def can_clear(e1, e2):
+def can_clear(e1, e2, map_index):
 	# 图片不一致不会消除
 	if e1.img_index != e2.img_index:
 		return False
 	else:
-		# 垂直扫描和水平扫描，一个成功即可
-		if v_scan(e1, e2) or h_scan(e1, e2):
+		if scan(e1, e2, map_index):
 			return True
 		else:
 			return False
 
-def check(map_list):
+def check(map_list, map_index):
 	global clicked, score, time
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			pygame.quit()
 			sys.exit()
+		elif event.type == KEYDOWN:
+			if event.key == K_ESCAPE:
+				pygame.quit()
+				sys.exit()				
 		elif event.type == MOUSEBUTTONDOWN:
 			pos = event.pos
 			for l in map_list:
@@ -102,8 +164,11 @@ def check(map_list):
 								break
 							else:
 								if clicked:
-									if can_clear(clicked, e):
+									if can_clear(clicked, e, map_index):
 										link_sound.play()
+										#标记位置清除
+										map_index[e.y][e.x] = False
+										map_index[clicked.y][clicked.x] = False
 										clicked.hide = True
 										e.hide = True
 										clicked = None
@@ -127,13 +192,13 @@ def init():
 def main():
 	global time
 	clock = pygame.time.Clock()
-	map_list = init_map()
+	map_list, map_index = init_map()
 	gameover = False
 
 	while True:
 		screen.fill(BLACK)
 		if not gameover:
-			check(map_list)
+			check(map_list, map_index)
 			print_text(font, 50, 0, "Score: " + str(score))
 			print_text(font, 600, 0, "Time: " + str(time // 1000))
 			# 绘所有图
@@ -152,6 +217,10 @@ def main():
 					if event.key == K_r:
 						init()
 						main()
+				elif event.type == KEYDOWN:
+					if event.key == K_ESCAPE:
+						pygame.quit()
+						sys.exit()
 			print_text(font, 300, 200, "Game Over !")
 			print_text(font, 300, 250, "Your Score: " + str(score))
 			print_text(font, 280, 300, "Press R To Restart")	
