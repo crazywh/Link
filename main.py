@@ -127,10 +127,10 @@ def scan(e1, e2, map_index):
 		return True
 	elif e1.y == e2.y and abs(e1.x - e2.x) == 1:
 		return True
-
 	return False
 
 # 检查两个是否匹配
+
 def can_clear(e1, e2, map_index):
 	# 图片不一致不会消除
 	if e1.img_index != e2.img_index:
